@@ -49,7 +49,7 @@ def validateToken(request: func.HttpRequest):
     
 
 
-@app.route(route="access-reviews", methods=["GET"], auth_level = func.AuthLevel.ANONYMOUS
+@app.route(route="access-reviews", methods=["GET"], auth_level = func.AuthLevel.ANONYMOUS)
 @handle_exceptions
 def get_access_reviews(req: func.HttpRequest) -> func.HttpResponse:
     validateToken(req)
@@ -60,7 +60,7 @@ def get_access_reviews(req: func.HttpRequest) -> func.HttpResponse:
     )
 
 
-@app.route(route="access-reviews", methods=["POST"], auth_level = func.AuthLevel.ANONYMOUS
+@app.route(route="access-reviews", methods=["POST"], auth_level = func.AuthLevel.ANONYMOUS)
 @handle_exceptions
 def create_access_review(req: func.HttpRequest) -> func.HttpResponse:
     validateToken(req)
