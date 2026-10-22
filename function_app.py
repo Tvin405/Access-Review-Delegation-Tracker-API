@@ -8,7 +8,7 @@ import azure.functions as func
 
 app = func.FunctionApp()
 
-access-reviews = {}
+access_reviews = {}
 
 class AuthError(Exception):
     pass
@@ -47,4 +47,30 @@ def validateToken(request: func.HttpRequest):
     if not token or request.headers.get("x-api-key") != token:
         raise AuthError("Unauthorized: Invalid or missing API key")
     
-    
+
+
+@app.route(route="access-reviews", methods=["GET"], auth_level = func.AuthLevel.ANONYMOUS
+@handle_exceptions
+def get_access_reviews(req: func.HttpRequest) -> func.HttpResponse:
+    validateToken(req)
+    return func.HttpResponse(
+        json.dumps(list(access_reviews.values())),
+        status_code=200,
+        mimetype="application/json",
+    )
+
+
+@app.route(route="access-reviews", methods=["POST"], auth_level = func.AuthLevel.ANONYMOUS
+@handle_exceptions
+def create_access_review(req: func.HttpRequest) -> func.HttpResponse:
+    validateToken(req)
+
+    body = req.get_json()
+    group_id = str(uuid.uuid4())
+    body["id"] = group_id
+    access_reviews[group_id] = body
+    return func.HttpResponse(
+        json.dumps(body),
+        status_code=201,
+        mimetype="application/json"
+    )
