@@ -1,25 +1,50 @@
-import azure.functions as func
+import functools
+import json
 import logging
+import os
+import uuid
 
-app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
+import azure.functions as func
 
-@app.route(route="Access_Reviewer")
-def Access_Reviewer(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info('Python HTTP trigger function processed a request.')
+app = func.FunctionApp()
 
-    name = req.params.get('name')
-    if not name:
+access-reviews = {}
+
+class AuthError(Exception):
+    pass
+
+def handle_exceptions(handler):
+    @functools.wraps(handler)
+    def wrapper(*args, **kwargs):
         try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            name = req_body.get('name')
+            return handler(*args, **kwargs)
+        except AuthError as exc:
+            return func.HttpResponse(
+                json.dumps({"error": str(exc)}),
+                status_code=401,
+                mimetype="application/json"
+            )
+        except Exception:
+            logging.exception("Unhandled API exception")
+            return func.HttpResponse(
+                json.dumps({"error": "Internal Server Error"}),
+                status_code=500,
+                mimetype="application/json"
+            )
+    return wrapper
 
-    if name:
-        return func.HttpResponse(f"Hello, {name}. This HTTP triggered function executed successfully.")
-    else:
-        return func.HttpResponse(
-             "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
-             status_code=200
-        )
+
+
+def getToken():
+    api_key = os.environ.get("apikey")
+    if not api_key:
+        raise AuthError("API key not configured")
+    return api_key
+
+
+def validateToken(request: func.HttpRequest):
+    token = getToken()
+    if not token or request.headers.get("x-api-key") != token:
+        raise AuthError("Unauthorized: Invalid or missing API key")
+    
+    
