@@ -5,7 +5,13 @@ info:
 
 http:
   method: GET
-  url: "{{baseUrl}}/api/logs"
+  url: "{{baseUrl}}/api/access-reviews"
   headers:
     - name: x-api-key
       value: "{{apiKey}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
