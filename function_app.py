@@ -59,7 +59,11 @@ def validateToken(request: func.HttpRequest):
     if not token or request.headers.get("x-api-key") != token:
         raise AuthError("Unauthorized: Invalid or missing API key")
     
-
+def find_access_review(request: func.HttpRequest):
+    group_id = request.route_params.get("id")
+    if group_id not in access_reviews:
+        raise NotFoundError(f"Access review with ID {group_id} not found")
+    return access_reviews[group_id]
 
 @app.route(route="access-reviews", methods=["GET"], auth_level = func.AuthLevel.ANONYMOUS)
 @handle_exceptions
