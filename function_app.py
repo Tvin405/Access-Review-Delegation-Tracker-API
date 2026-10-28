@@ -24,6 +24,18 @@ def handle_exceptions(handler):
                 status_code=401,
                 mimetype="application/json"
             )
+        except NotFoundError as exc:
+            return func.HttpResponse(
+                json.dumps({"error": str(exc)}),
+                status_code=404,
+                mimetype="application/json"
+            )
+        except ValueError as exc:
+            return func.HttpResponse(
+                json.dumps({"error": str(exc)}),
+                status_code=400,
+                mimetype="application/json"
+            )
         except Exception:
             logging.exception("Unhandled API exception")
             return func.HttpResponse(
