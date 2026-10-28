@@ -1,14 +1,15 @@
 info:
-  name: Get all logs
+  name: Create Access Review
   type: http
   seq: 1
 
 http:
-  method: GET
-  url: "{{baseUrl}}/api/access-reviews"
+  method: POST
+  url: "{{baseUrl}}/access-reviews"
   headers:
     - name: x-api-key
-      value: "{{apiKey}}"
+      value: "{{apikey}}"
+  auth: inherit
 
 settings:
   encodeUrl: true
