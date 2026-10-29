@@ -11,7 +11,7 @@ http:
       value: "{{apikey}}"
   body:
     type: json
-    data: |2
+    data: |2-
         {
           "user": "big.red@shu-demo.edu",
           "role": "Global Administrator",
@@ -23,6 +23,31 @@ http:
           "justification": "Quarterly tenant configuration review for the Pioneers campus directory",
           "startDate": "2026-10-20",
           "expirationDate": "2026-10-27",
+          "status": "active"
+        },
+        {
+          "user": "pioneer.admin@shu-demo.edu",
+          "role": "Domain Admin",
+          "system": "Fairfield Campus Active Directory",
+          "accessType": "PAM",
+          "assignmentType": "active",
+          "requiresPAW": true,
+          "grantedBy": "it-director@shu-demo.edu",
+          "justification": "Domain controller patching window",
+          "startDate": "2026-10-25",
+          "expirationDate": "2026-10-26",
+          "status": "active"
+        },
+        {
+          "user": "soc.analyst@shu-demo.edu",
+          "role": "Security Reader",
+          "system": "SHU Security Operations Center (Microsoft Defender)",
+          "accessType": "Standard",
+          "assignmentType": "permanent",
+          "requiresPAW": false,
+          "grantedBy": "soc-manager@shu-demo.edu",
+          "justification": "Daily monitoring of campus security alerts",
+          "startDate": "2026-09-01",
           "status": "active"
         }
   auth: inherit
