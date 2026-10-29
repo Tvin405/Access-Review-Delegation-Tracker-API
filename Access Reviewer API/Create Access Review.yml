@@ -9,6 +9,22 @@ http:
   headers:
     - name: x-api-key
       value: "{{apikey}}"
+  body:
+    type: json
+    data: |2
+        {
+          "user": "big.red@shu-demo.edu",
+          "role": "Global Administrator",
+          "system": "SHU Microsoft Entra ID",
+          "accessType": "PIM",
+          "assignmentType": "eligible",
+          "requiresPAW": true,
+          "grantedBy": "ciso@shu-demo.edu",
+          "justification": "Quarterly tenant configuration review for the Pioneers campus directory",
+          "startDate": "2026-10-20",
+          "expirationDate": "2026-10-27",
+          "status": "active"
+        }
   auth: inherit
 
 settings:

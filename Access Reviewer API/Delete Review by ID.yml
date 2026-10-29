@@ -1,0 +1,21 @@
+info:
+  name: Delete Review by ID
+  type: http
+  seq: 1
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/access-reviews/f9314de1-a544-4223-8308-dbc8883b3706"
+  headers:
+    - name: x-api-key
+      value: "{{apikey}}"
+  body:
+    type: json
+    data: ""
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -12,6 +12,8 @@ access_reviews = {}
 
 class AuthError(Exception):
     pass
+class NotFoundError(Exception):
+    pass
 
 def handle_exceptions(handler):
     @functools.wraps(handler)
@@ -63,7 +65,7 @@ def find_access_review(request: func.HttpRequest):
     group_id = request.route_params.get("id")
     if group_id not in access_reviews:
         raise NotFoundError(f"Access review with ID {group_id} not found")
-    return access_reviews[group_id]
+    return group_id
 
 
 
@@ -82,8 +84,9 @@ def get_access_reviews(req: func.HttpRequest) -> func.HttpResponse:
 @handle_exceptions
 def create_access_review(req: func.HttpRequest) -> func.HttpResponse:
     validateToken(req)
-
     body = req.get_json()
+    if not isinstance(body, dict):
+        raise ValueError("Request body must be a JSON object")
     group_id = str(uuid.uuid4())
     body["id"] = group_id
     access_reviews[group_id] = body
@@ -99,6 +102,8 @@ def update_access_review(req: func.HttpRequest) -> func.HttpResponse:
     validateToken(req)
     group_id = find_access_review(req)
     body = req.get_json()
+    if not isinstance(body, dict):
+        raise ValueError("Request body must be a JSON object")
     body["id"] = group_id
     access_reviews[group_id] = body
     return func.HttpResponse(
