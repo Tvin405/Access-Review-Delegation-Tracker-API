@@ -126,7 +126,7 @@ def delete_access_review(req: func.HttpRequest) -> func.HttpResponse:
 
 
 
-@app.route(route="access-reviews/{id}", methods=["DELETE"], auth_level = func.AuthLevel.ANONYMOUS)
+@app.route(route="access-reviews", methods=["DELETE"], auth_level = func.AuthLevel.ANONYMOUS)
 @handle_exceptions
 def purge_access_review(req: func.HttpRequest) -> func.HttpResponse:
     validateToken(req)
@@ -138,11 +138,10 @@ def purge_access_review(req: func.HttpRequest) -> func.HttpResponse:
         mimetype="application/json"
     )
 
-@app.route(route="access-reviews/{id}", methods=["GET"], auth_level = func.AuthLevel.ANONYMOUS)
+@app.route(route="access-reviews", methods=["GET"], auth_level = func.AuthLevel.ANONYMOUS)
 @handle_exceptions
 def count_access_review(req: func.HttpRequest) -> func.HttpResponse:
     validateToken(req)
-    group_id = find_access_review(req)
     return func.HttpResponse(
         json.dumps({"count": len(access_reviews)}),
         status_code=200,
