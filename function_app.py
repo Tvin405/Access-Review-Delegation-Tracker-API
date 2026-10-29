@@ -138,7 +138,7 @@ def purge_access_review(req: func.HttpRequest) -> func.HttpResponse:
         mimetype="application/json"
     )
 
-@app.route(route="access-reviews", methods=["GET"], auth_level = func.AuthLevel.ANONYMOUS)
+@app.route(route="access-reviews/count", methods=["GET"], auth_level = func.AuthLevel.ANONYMOUS)
 @handle_exceptions
 def count_access_review(req: func.HttpRequest) -> func.HttpResponse:
     validateToken(req)
