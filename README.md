@@ -4,7 +4,7 @@ A cloud-native REST API, built with Python on **Azure Functions**, that tracks w
 
 > Built for CS432 / CY-421 Cloud Computing (Midterm Project), Sacred Heart University.
 
-📄 **Full documentation** (API reference, Azure deployment and test evidence): [Cloud-Computing-Midterm-API.pdf](docs/Cloud-Computing-Midterm-API.pdf)
+📄 **Full documentation** (API reference, Azure deployment and test evidence): [Cloud-Computing-Midterm-API.pdf](docs/Cloud-Computing-Midterm-API.pdf](https://github.com/Tvin405/Access-Review-Delegation-Tracker-API/blob/main/docs/Cloud%20Computing%20Midterm%20-%20API%20-%20Ty%20Iorfino.pdf))
 
 ---
 
