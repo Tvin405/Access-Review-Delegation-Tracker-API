@@ -62,7 +62,7 @@ def validateToken(request: func.HttpRequest):
         raise AuthError("Unauthorized: Invalid or missing API key")
 
 
-##### 
+
 def validateAdminToken(request: func.HttpRequest):
     admin_key = os.environ.get("adminkey")
     if not admin_key:
