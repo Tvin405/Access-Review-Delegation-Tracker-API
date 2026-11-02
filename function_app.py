@@ -60,6 +60,18 @@ def validateToken(request: func.HttpRequest):
     token = getToken()
     if not token or request.headers.get("x-api-key") != token:
         raise AuthError("Unauthorized: Invalid or missing API key")
+
+
+##### 
+def validateAdminToken(request: func.HttpRequest):
+    admin_key = os.environ.get("adminkey")
+    if not admin_key:
+        raise RuntimeError("Admin key not configured on the server")
+    if request.headers.get("x-admin-key") != admin_key:
+        raise AuthError("Unauthorized: Admin key required for purge")
+
+
+
     
 def find_access_review(request: func.HttpRequest):
     group_id = request.route_params.get("id")
@@ -130,6 +142,7 @@ def delete_access_review(req: func.HttpRequest) -> func.HttpResponse:
 @handle_exceptions
 def purge_access_review(req: func.HttpRequest) -> func.HttpResponse:
     validateToken(req)
+    validateAdminToken(req)
     deleted = len(access_reviews)
     access_reviews.clear()
     return func.HttpResponse(
