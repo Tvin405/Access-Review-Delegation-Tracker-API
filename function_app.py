@@ -2,12 +2,14 @@ import functools
 import json
 import logging
 import os
+import time
 import uuid
 
 import azure.functions as func
 from azure.core.exceptions import ResourceNotFoundError
 from azure.data.tables import TableServiceClient, UpdateMode
 from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 
 app = func.FunctionApp()
 
@@ -81,30 +83,27 @@ def handle_exceptions(handler):
 
 
 
-def getToken():
-    api_key = os.environ.get("apikey")
-    if not api_key:
-        raise AuthError("API key not configured")
-    return api_key
+def getToken(secret_name="api-key"):
+    credential = DefaultAzureCredential()
+    client = SecretClient(vault_url=os.environ.get("KEY_VAULT_URL"), credential=credential)
+    token = client.get_secret(secret_name)
+    return token
 
 
 def validateToken(request: func.HttpRequest):
-    token = getToken()
-    if not token or request.headers.get("x-api-key") != token:
+    token = getToken("api-key")
+    if not token.value or request.headers.get("x-api-key") != token.value:
         raise AuthError("Unauthorized: Invalid or missing API key")
 
 
-
 def validateAdminToken(request: func.HttpRequest):
-    admin_key = os.environ.get("adminkey")
-    if not admin_key:
-        raise RuntimeError("Admin key not configured on the server")
-    if request.headers.get("x-admin-key") != admin_key:
+    admin_token = getToken("admin-key")
+    if not admin_token.value or request.headers.get("x-admin-key") != admin_token.value:
         raise AuthError("Unauthorized: Admin key required for purge")
 
 
 
-    
+
 def find_access_review(request: func.HttpRequest):
     group_id = request.route_params.get("id")
     try:
