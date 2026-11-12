@@ -5,10 +5,42 @@ import os
 import uuid
 
 import azure.functions as func
+from azure.core.exceptions import ResourceNotFoundError
+from azure.data.tables import TableServiceClient, UpdateMode
+from azure.identity import DefaultAzureCredential
 
 app = func.FunctionApp()
 
-access_reviews = {}
+TABLE_NAME = os.environ.get("TABLE_NAME", "accessreviews")
+PARTITION_KEY = "accessreviews"
+_table_client = None
+
+def table():
+    global _table_client
+    if _table_client is None:
+        service = TableServiceClient(
+            endpoint=os.environ.get("STORAGE_TABLE_ENDPOINT"),
+            credential=DefaultAzureCredential(),
+        )
+        _table_client = service.create_table_if_not_exists(TABLE_NAME)
+    return _table_client
+
+
+def to_record(entity):
+    record = {k: v for k, v in entity.items() if k not in ("PartitionKey", "RowKey")}
+    record["id"] = entity["RowKey"]
+    return record
+
+def all_access_reviews():
+    entities = table().query_entities(f"PartitionKey eq '{PARTITION_KEY}'")
+    return [to_record(e) for e in entities]
+
+def check_flat(body):
+    for key, value in body.items():
+        if isinstance(value, (dict, list)):
+            raise ValueError(f"'{key}' must be a string, number, or boolean, not a nested object or array")
+        
+
 
 class AuthError(Exception):
     pass
@@ -75,10 +107,11 @@ def validateAdminToken(request: func.HttpRequest):
     
 def find_access_review(request: func.HttpRequest):
     group_id = request.route_params.get("id")
-    if group_id not in access_reviews:
+    try:
+        table().get_entity(partition_key=PARTITION_KEY, row_key=group_id)
+    except ResourceNotFoundError:
         raise NotFoundError(f"Access review with ID {group_id} not found")
     return group_id
-
 
 
 @app.route(route="access-reviews", methods=["GET"], auth_level = func.AuthLevel.ANONYMOUS)
@@ -86,7 +119,7 @@ def find_access_review(request: func.HttpRequest):
 def get_access_reviews(req: func.HttpRequest) -> func.HttpResponse:
     validateToken(req)
     return func.HttpResponse(
-        json.dumps(list(access_reviews.values())),
+        json.dumps(all_access_reviews()),
         status_code=200,
         mimetype="application/json",
     )
@@ -99,9 +132,10 @@ def create_access_review(req: func.HttpRequest) -> func.HttpResponse:
     body = req.get_json()
     if not isinstance(body, dict):
         raise ValueError("Request body must be a JSON object")
+    check_flat(body)
     group_id = str(uuid.uuid4())
     body["id"] = group_id
-    access_reviews[group_id] = body
+    table().create_entity({"PartitionKey": PARTITION_KEY, "RowKey": group_id, **body})
     return func.HttpResponse(
         json.dumps(body),
         status_code=201,
@@ -116,8 +150,12 @@ def update_access_review(req: func.HttpRequest) -> func.HttpResponse:
     body = req.get_json()
     if not isinstance(body, dict):
         raise ValueError("Request body must be a JSON object")
+    check_flat(body)
     body["id"] = group_id
-    access_reviews[group_id] = body
+    table().upsert_entity(
+        {"PartitionKey": PARTITION_KEY, "RowKey": group_id, **body},
+        mode=UpdateMode.REPLACE,
+    )
     return func.HttpResponse(
         json.dumps(body),
         status_code=200,
@@ -129,22 +167,24 @@ def update_access_review(req: func.HttpRequest) -> func.HttpResponse:
 def delete_access_review(req: func.HttpRequest) -> func.HttpResponse:
     validateToken(req)
     group_id = find_access_review(req)
-    del access_reviews[group_id]
+    table().delete_entity(partition_key=PARTITION_KEY, row_key=group_id)
     return func.HttpResponse(
         json.dumps({"message": f"Access review with ID {group_id} deleted"}),
         status_code=200,
         mimetype="application/json"
     )
 
-
+##########################################EXTRA#####################################################
 
 @app.route(route="access-reviews", methods=["DELETE"], auth_level = func.AuthLevel.ANONYMOUS)
 @handle_exceptions
 def purge_access_review(req: func.HttpRequest) -> func.HttpResponse:
     validateToken(req)
     validateAdminToken(req)
-    deleted = len(access_reviews)
-    access_reviews.clear()
+    reviews = all_access_reviews()
+    for review in reviews:
+        table().delete_entity(partition_key=PARTITION_KEY, row_key=review["id"])
+    deleted = len(reviews)
     return func.HttpResponse(
         json.dumps({"message": f"All access reviews deleted. Total deleted: {deleted}"}),
         status_code=200,
@@ -156,7 +196,20 @@ def purge_access_review(req: func.HttpRequest) -> func.HttpResponse:
 def count_access_review(req: func.HttpRequest) -> func.HttpResponse:
     validateToken(req)
     return func.HttpResponse(
-        json.dumps({"count": len(access_reviews)}),
+        json.dumps({"count": len(all_access_reviews())}),
+        status_code=200,
+        mimetype="application/json"
+    )
+
+
+@app.route(route="access-reviews/{id}", methods=["GET"], auth_level = func.AuthLevel.ANONYMOUS)
+@handle_exceptions
+def get_access_review(req: func.HttpRequest) -> func.HttpResponse:
+    validateToken(req)
+    group_id = find_access_review(req)
+    entity = table().get_entity(partition_key=PARTITION_KEY, row_key=group_id)
+    return func.HttpResponse(
+        json.dumps(to_record(entity)),
         status_code=200,
         mimetype="application/json"
     )
