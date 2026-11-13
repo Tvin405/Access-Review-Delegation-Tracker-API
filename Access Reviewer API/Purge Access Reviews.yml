@@ -9,6 +9,8 @@ http:
   headers:
     - name: x-api-key
       value: "{{apikey}}"
+    - name: x-admin-key
+      value: "{{adminkey}}"
   auth: inherit
 
 settings:
