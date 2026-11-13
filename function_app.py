@@ -13,6 +13,9 @@ from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 
 app = func.FunctionApp()
+if os.environ.get("APPLICATIONINSIGHTS_CONNECTION_STRING"):
+    from azure.monitor.opentelemetry import configure_azure_monitor
+    configure_azure_monitor(enable_live_metrics=True)
 
 #############################################TABLE CLIENT#####################################################
 
@@ -231,7 +234,8 @@ def validate_access_reviews(req: func.HttpRequest) -> func.HttpResponse:
                 },
                 mode=UpdateMode.MERGE,
             )
-            updated += 1
+            updated += 1    
+    logging.info("ValidationCompleted", extra={"microsoft.custom_event.name": "ValidationCompleted", "updatedCount": updated})
     return func.HttpResponse(
         json.dumps({"updatedCount": updated, "timestamp": now.isoformat(timespec="seconds")}),
         status_code=200,
