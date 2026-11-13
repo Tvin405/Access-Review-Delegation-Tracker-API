@@ -4,6 +4,7 @@ import logging
 import os
 import time
 import uuid
+from datetime import date, datetime, timezone
 
 import azure.functions as func
 from azure.core.exceptions import ResourceNotFoundError
@@ -12,6 +13,8 @@ from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 
 app = func.FunctionApp()
+
+#############################################TABLE CLIENT#####################################################
 
 TABLE_NAME = os.environ.get("TABLE_NAME", "accessreviews")
 PARTITION_KEY = "accessreviews"
@@ -27,7 +30,6 @@ def table():
         _table_client = service.create_table_if_not_exists(TABLE_NAME)
     return _table_client
 
-
 def to_record(entity):
     record = {k: v for k, v in entity.items() if k not in ("PartitionKey", "RowKey")}
     record["id"] = entity["RowKey"]
@@ -42,7 +44,7 @@ def check_flat(body):
         if isinstance(value, (dict, list)):
             raise ValueError(f"'{key}' must be a string, number, or boolean, not a nested object or array")
         
-
+############################################ERROR HANDLING#####################################################
 
 class AuthError(Exception):
     pass
@@ -81,7 +83,7 @@ def handle_exceptions(handler):
             )
     return wrapper
 
-
+############################################AUTHENTICATION#####################################################
 
 def getToken(secret_name="api-key"):
     credential = DefaultAzureCredential()
@@ -89,20 +91,15 @@ def getToken(secret_name="api-key"):
     token = client.get_secret(secret_name)
     return token
 
-
 def validateToken(request: func.HttpRequest):
     token = getToken("api-key")
     if not token.value or request.headers.get("x-api-key") != token.value:
         raise AuthError("Unauthorized: Invalid or missing API key")
 
-
 def validateAdminToken(request: func.HttpRequest):
     admin_token = getToken("admin-key")
     if not admin_token.value or request.headers.get("x-admin-key") != admin_token.value:
         raise AuthError("Unauthorized: Admin key required for purge")
-
-
-
 
 def find_access_review(request: func.HttpRequest):
     group_id = request.route_params.get("id")
@@ -112,6 +109,7 @@ def find_access_review(request: func.HttpRequest):
         raise NotFoundError(f"Access review with ID {group_id} not found")
     return group_id
 
+###########################################API ENDPOINTS#####################################################
 
 @app.route(route="access-reviews", methods=["GET"], auth_level = func.AuthLevel.ANONYMOUS)
 @handle_exceptions
@@ -122,7 +120,6 @@ def get_access_reviews(req: func.HttpRequest) -> func.HttpResponse:
         status_code=200,
         mimetype="application/json",
     )
-
 
 @app.route(route="access-reviews", methods=["POST"], auth_level = func.AuthLevel.ANONYMOUS)
 @handle_exceptions
@@ -200,7 +197,6 @@ def count_access_review(req: func.HttpRequest) -> func.HttpResponse:
         mimetype="application/json"
     )
 
-
 @app.route(route="access-reviews/{id}", methods=["GET"], auth_level = func.AuthLevel.ANONYMOUS)
 @handle_exceptions
 def get_access_review(req: func.HttpRequest) -> func.HttpResponse:
@@ -209,6 +205,35 @@ def get_access_review(req: func.HttpRequest) -> func.HttpResponse:
     entity = table().get_entity(partition_key=PARTITION_KEY, row_key=group_id)
     return func.HttpResponse(
         json.dumps(to_record(entity)),
+        status_code=200,
+        mimetype="application/json"
+    )
+
+##########################################BATCH VALIDATION#####################################################
+
+@app.route(route="access-reviews/validate", methods=["PATCH"], auth_level = func.AuthLevel.ANONYMOUS)
+@handle_exceptions
+def validate_access_reviews(req: func.HttpRequest) -> func.HttpResponse:
+    validateToken(req)
+    now = datetime.now(timezone.utc)
+    today = now.date().isoformat()
+    updated = 0
+    for review in all_access_reviews():
+        expiration = str(review.get("expirationDate") or "9999-12-31")
+        if review.get("status") == "active" and expiration < today:
+            table().update_entity(
+                {
+                    "PartitionKey": PARTITION_KEY,
+                    "RowKey": review["id"],
+                    "status": "expired",
+                    "needsRevocation": True,
+                    "validatedOn": now.isoformat(timespec="seconds"),
+                },
+                mode=UpdateMode.MERGE,
+            )
+            updated += 1
+    return func.HttpResponse(
+        json.dumps({"updatedCount": updated, "timestamp": now.isoformat(timespec="seconds")}),
         status_code=200,
         mimetype="application/json"
     )
