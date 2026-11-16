@@ -1,0 +1,1149 @@
+{
+  "properties": {
+    "lenses": [
+      {
+        "order": 0,
+        "parts": [
+          {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "colSpan": 11,
+              "rowSpan": 2
+            },
+            "metadata": {
+              "inputs": [],
+              "type": "Extension/HubsExtension/PartType/MarkdownPart",
+              "settings": {
+                "content": {
+                  "content": "Azure Functions API (Python) storing access reviews in Azure Table Storage.\n\nSecrets live in Key Vault and are read with managed identity.\nA daily Logic App calls `PATCH /access-reviews/validate` and emails the result.\n\nRule: status = active and expirationDate < today → status = expired, needsRevocation = true",
+                  "title": "Access Review Delegation Tracker",
+                  "subtitle": "Final project · Ty Iorfino",
+                  "markdownSource": 1,
+                  "markdownUri": ""
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 11,
+              "y": 0,
+              "colSpan": 10,
+              "rowSpan": 2
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "resourceTypeMode",
+                  "isOptional": true
+                },
+                {
+                  "name": "ComponentId",
+                  "isOptional": true
+                },
+                {
+                  "name": "Scope",
+                  "value": {
+                    "resourceIds": [
+                      "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourcegroups/rg-accessreview-dev-eus2-001/providers/microsoft.operationalinsights/workspaces/workspace-appi-accessreview-dev-eus2-001"
+                    ]
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "PartId",
+                  "value": "c097de10-11dc-48d7-8ed7-79469c7598d1",
+                  "isOptional": true
+                },
+                {
+                  "name": "Version",
+                  "value": "2.0",
+                  "isOptional": true
+                },
+                {
+                  "name": "TimeRange",
+                  "isOptional": true
+                },
+                {
+                  "name": "DashboardId",
+                  "isOptional": true
+                },
+                {
+                  "name": "DraftRequestParameters",
+                  "isOptional": true
+                },
+                {
+                  "name": "Query",
+                  "value": "let req = AppRequests | where TimeGenerated > ago(7d);\nlet val = AppEvents | where TimeGenerated > ago(7d) and Name == \"ValidationCompleted\";\nlet la  = AzureDiagnostics | where TimeGenerated > ago(7d)\n          and ResourceProvider == \"MICROSOFT.LOGIC\" and OperationName endswith \"workflowRunCompleted\";\nprint\n  ApiRequests      = toscalar(req | count),\n  ApiSuccessRate   = strcat(round(100.0 * toscalar(req | where Success == true | count) / toscalar(req | count), 1), \"%\"),\n  ValidationRuns   = toscalar(val | count),\n  AccessFlagged    = toscalar(val | summarize sum(toint(Properties.updatedCount))),\n  LogicAppRuns     = toscalar(la | count),\n  LogicAppFailures = toscalar(la | where status_s == \"Failed\" | count)\n",
+                  "isOptional": true
+                },
+                {
+                  "name": "ControlType",
+                  "value": "AnalyticsGrid",
+                  "isOptional": true
+                },
+                {
+                  "name": "SpecificChart",
+                  "isOptional": true
+                },
+                {
+                  "name": "PartTitle",
+                  "value": "Log Analytics",
+                  "isOptional": true
+                },
+                {
+                  "name": "PartSubTitle",
+                  "value": "workspace-appi-accessreview-dev-eus2-001",
+                  "isOptional": true
+                },
+                {
+                  "name": "Dimensions",
+                  "isOptional": true
+                },
+                {
+                  "name": "LegendOptions",
+                  "isOptional": true
+                },
+                {
+                  "name": "IsQueryContainTimeRange",
+                  "value": true,
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/Microsoft_OperationsManagementSuite_Workspace/PartType/LogsDashboardPart",
+              "settings": {},
+              "partHeader": {
+                "title": "Executive summary: last 7 days",
+                "subtitle": ""
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 0,
+              "y": 2,
+              "colSpan": 7,
+              "rowSpan": 4
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/Microsoft.Insights/components/appi-accessreview-dev-eus2-001"
+                          },
+                          "name": "requests/count",
+                          "aggregationType": 1,
+                          "namespace": "microsoft.insights/components/kusto",
+                          "metricVisualization": {
+                            "displayName": "Server requests"
+                          }
+                        },
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/Microsoft.Insights/components/appi-accessreview-dev-eus2-001"
+                          },
+                          "name": "requests/failed",
+                          "aggregationType": 1,
+                          "namespace": "microsoft.insights/components/kusto",
+                          "metricVisualization": {
+                            "displayName": "Failed requests"
+                          }
+                        }
+                      ],
+                      "title": "FinalProject-TyIorfino",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideHoverCard": false,
+                          "hideLabelNames": true
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        }
+                      },
+                      "timespan": {
+                        "relative": {
+                          "duration": 604800000
+                        },
+                        "showUTCTime": false,
+                        "grain": 1
+                      }
+                    }
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/Microsoft.Insights/components/appi-accessreview-dev-eus2-001"
+                          },
+                          "name": "requests/count",
+                          "aggregationType": 1,
+                          "namespace": "microsoft.insights/components/kusto",
+                          "metricVisualization": {
+                            "displayName": "Server requests"
+                          }
+                        },
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/Microsoft.Insights/components/appi-accessreview-dev-eus2-001"
+                          },
+                          "name": "requests/failed",
+                          "aggregationType": 1,
+                          "namespace": "microsoft.insights/components/kusto",
+                          "metricVisualization": {
+                            "displayName": "Failed requests"
+                          }
+                        }
+                      ],
+                      "title": "API Health: requests vs failures",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideHoverCard": false,
+                          "hideLabelNames": true
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 7,
+              "y": 2,
+              "colSpan": 7,
+              "rowSpan": 4
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/Microsoft.Insights/components/appi-accessreview-dev-eus2-001"
+                          },
+                          "name": "requests/duration",
+                          "aggregationType": 4,
+                          "namespace": "microsoft.insights/components/kusto",
+                          "metricVisualization": {
+                            "displayName": "Server response time"
+                          }
+                        }
+                      ],
+                      "title": "API Health: average response time (ms)",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideHoverCard": false,
+                          "hideLabelNames": true
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        }
+                      },
+                      "timespan": {
+                        "relative": {
+                          "duration": 604800000
+                        },
+                        "showUTCTime": false,
+                        "grain": 1
+                      }
+                    }
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/Microsoft.Insights/components/appi-accessreview-dev-eus2-001"
+                          },
+                          "name": "requests/duration",
+                          "aggregationType": 4,
+                          "namespace": "microsoft.insights/components/kusto",
+                          "metricVisualization": {
+                            "displayName": "Server response time"
+                          }
+                        }
+                      ],
+                      "title": "API Health: average response time (ms)",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideHoverCard": false,
+                          "hideLabelNames": true
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      }
+                    }
+                  }
+                }
+              },
+              "filters": {
+                "MsPortalFx_TimeRange": {
+                  "model": {
+                    "format": "local",
+                    "granularity": "auto",
+                    "relative": "43200m"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 14,
+              "y": 2,
+              "colSpan": 7,
+              "rowSpan": 4
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "resourceTypeMode",
+                  "isOptional": true
+                },
+                {
+                  "name": "ComponentId",
+                  "isOptional": true
+                },
+                {
+                  "name": "Scope",
+                  "value": {
+                    "resourceIds": [
+                      "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/microsoft.insights/components/appi-accessreview-dev-eus2-001"
+                    ]
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "PartId",
+                  "value": "eaecfa52-773f-49e4-9e99-dd62ec94eab2",
+                  "isOptional": true
+                },
+                {
+                  "name": "Version",
+                  "value": "2.0",
+                  "isOptional": true
+                },
+                {
+                  "name": "TimeRange",
+                  "isOptional": true
+                },
+                {
+                  "name": "DashboardId",
+                  "isOptional": true
+                },
+                {
+                  "name": "DraftRequestParameters",
+                  "isOptional": true
+                },
+                {
+                  "name": "Query",
+                  "value": "requests\n| where timestamp > ago(7d)\n| summarize Requests = count() by StatusCode = resultCode\n| render piechart\n",
+                  "isOptional": true
+                },
+                {
+                  "name": "ControlType",
+                  "value": "FrameControlChart",
+                  "isOptional": true
+                },
+                {
+                  "name": "SpecificChart",
+                  "value": "Pie",
+                  "isOptional": true
+                },
+                {
+                  "name": "PartTitle",
+                  "value": "Log Analytics",
+                  "isOptional": true
+                },
+                {
+                  "name": "PartSubTitle",
+                  "value": "appi-accessreview-dev-eus2-001",
+                  "isOptional": true
+                },
+                {
+                  "name": "Dimensions",
+                  "value": {
+                    "xAxis": {
+                      "name": "StatusCode",
+                      "type": "string"
+                    },
+                    "yAxis": [
+                      {
+                        "name": "Requests",
+                        "type": "long"
+                      }
+                    ],
+                    "splitBy": [],
+                    "aggregation": "Sum"
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "LegendOptions",
+                  "value": {
+                    "isEnabled": true,
+                    "position": "Bottom"
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "IsQueryContainTimeRange",
+                  "value": true,
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/Microsoft_OperationsManagementSuite_Workspace/PartType/LogsDashboardPart",
+              "settings": {},
+              "partHeader": {
+                "title": "API Health: responses by status code",
+                "subtitle": ""
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 0,
+              "y": 6,
+              "colSpan": 10,
+              "rowSpan": 4
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "resourceTypeMode",
+                  "isOptional": true
+                },
+                {
+                  "name": "ComponentId",
+                  "isOptional": true
+                },
+                {
+                  "name": "Scope",
+                  "value": {
+                    "resourceIds": [
+                      "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/microsoft.insights/components/appi-accessreview-dev-eus2-001"
+                    ]
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "PartId",
+                  "value": "d3e92811-b674-49ec-acba-219a40741b92",
+                  "isOptional": true
+                },
+                {
+                  "name": "Version",
+                  "value": "2.0",
+                  "isOptional": true
+                },
+                {
+                  "name": "TimeRange",
+                  "isOptional": true
+                },
+                {
+                  "name": "DashboardId",
+                  "isOptional": true
+                },
+                {
+                  "name": "DraftRequestParameters",
+                  "isOptional": true
+                },
+                {
+                  "name": "Query",
+                  "value": "customEvents\n| where timestamp > ago(7d)\n| where name == \"ValidationCompleted\"\n| project timestamp, RecordsFlagged = toint(customDimensions.updatedCount)\n| render columnchart\n",
+                  "isOptional": true
+                },
+                {
+                  "name": "ControlType",
+                  "value": "FrameControlChart",
+                  "isOptional": true
+                },
+                {
+                  "name": "SpecificChart",
+                  "value": "StackedColumn",
+                  "isOptional": true
+                },
+                {
+                  "name": "PartTitle",
+                  "value": "Log Analytics",
+                  "isOptional": true
+                },
+                {
+                  "name": "PartSubTitle",
+                  "value": "appi-accessreview-dev-eus2-001",
+                  "isOptional": true
+                },
+                {
+                  "name": "Dimensions",
+                  "value": {
+                    "xAxis": {
+                      "name": "timestamp",
+                      "type": "datetime"
+                    },
+                    "yAxis": [
+                      {
+                        "name": "RecordsFlagged",
+                        "type": "int"
+                      }
+                    ],
+                    "splitBy": [],
+                    "aggregation": "Sum"
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "LegendOptions",
+                  "value": {
+                    "isEnabled": true,
+                    "position": "Bottom"
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "IsQueryContainTimeRange",
+                  "value": true,
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/Microsoft_OperationsManagementSuite_Workspace/PartType/LogsDashboardPart",
+              "settings": {},
+              "filters": {
+                "MsPortalFx_TimeRange": {
+                  "model": {
+                    "format": "utc",
+                    "granularity": "auto",
+                    "relative": "30d"
+                  }
+                }
+              },
+              "partHeader": {
+                "title": "Validation: expired access flagged per run",
+                "subtitle": ""
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 10,
+              "y": 6,
+              "colSpan": 11,
+              "rowSpan": 4
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "resourceTypeMode",
+                  "isOptional": true
+                },
+                {
+                  "name": "ComponentId",
+                  "isOptional": true
+                },
+                {
+                  "name": "Scope",
+                  "value": {
+                    "resourceIds": [
+                      "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/microsoft.insights/components/appi-accessreview-dev-eus2-001"
+                    ]
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "PartId",
+                  "value": "0e5ddaa2-2902-4ac7-acf2-40db7df7d1fb",
+                  "isOptional": true
+                },
+                {
+                  "name": "Version",
+                  "value": "2.0",
+                  "isOptional": true
+                },
+                {
+                  "name": "TimeRange",
+                  "isOptional": true
+                },
+                {
+                  "name": "DashboardId",
+                  "isOptional": true
+                },
+                {
+                  "name": "DraftRequestParameters",
+                  "isOptional": true
+                },
+                {
+                  "name": "Query",
+                  "value": "requests\n| where timestamp > ago(7d)\n| summarize Calls = count(), Failed = countif(success == false),\n            AvgMs = round(avg(duration), 1), P95Ms = round(percentile(duration, 95), 1)\n          by Endpoint = name\n| extend SuccessRate = strcat(round(100.0 * (Calls - Failed) / Calls, 1), \"%\")\n| order by Calls desc\n",
+                  "isOptional": true
+                },
+                {
+                  "name": "ControlType",
+                  "value": "AnalyticsGrid",
+                  "isOptional": true
+                },
+                {
+                  "name": "SpecificChart",
+                  "isOptional": true
+                },
+                {
+                  "name": "PartTitle",
+                  "value": "Log Analytics",
+                  "isOptional": true
+                },
+                {
+                  "name": "PartSubTitle",
+                  "value": "appi-accessreview-dev-eus2-001",
+                  "isOptional": true
+                },
+                {
+                  "name": "Dimensions",
+                  "isOptional": true
+                },
+                {
+                  "name": "LegendOptions",
+                  "isOptional": true
+                },
+                {
+                  "name": "IsQueryContainTimeRange",
+                  "value": true,
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/Microsoft_OperationsManagementSuite_Workspace/PartType/LogsDashboardPart",
+              "settings": {},
+              "partHeader": {
+                "title": "API Health: endpoint scorecard",
+                "subtitle": ""
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 0,
+              "y": 10,
+              "colSpan": 7,
+              "rowSpan": 4
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/Microsoft.Logic/workflows/logic-accessreview-validate-dev-eus2-001"
+                          },
+                          "name": "RunsSucceeded",
+                          "aggregationType": 1,
+                          "namespace": "microsoft.logic/workflows",
+                          "metricVisualization": {
+                            "displayName": "Runs Succeeded"
+                          }
+                        },
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/Microsoft.Logic/workflows/logic-accessreview-validate-dev-eus2-001"
+                          },
+                          "name": "RunsFailed",
+                          "aggregationType": 1,
+                          "namespace": "microsoft.logic/workflows",
+                          "metricVisualization": {
+                            "displayName": "Runs Failed"
+                          }
+                        }
+                      ],
+                      "title": "Automation: Logic App runs",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 1,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideHoverCard": false,
+                          "hideLabelNames": true
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        }
+                      },
+                      "timespan": {
+                        "relative": {
+                          "duration": 604800000
+                        },
+                        "showUTCTime": false,
+                        "grain": 1
+                      }
+                    }
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/Microsoft.Logic/workflows/logic-accessreview-validate-dev-eus2-001"
+                          },
+                          "name": "RunsSucceeded",
+                          "aggregationType": 1,
+                          "namespace": "microsoft.logic/workflows",
+                          "metricVisualization": {
+                            "displayName": "Runs Succeeded"
+                          }
+                        },
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/Microsoft.Logic/workflows/logic-accessreview-validate-dev-eus2-001"
+                          },
+                          "name": "RunsFailed",
+                          "aggregationType": 1,
+                          "namespace": "microsoft.logic/workflows",
+                          "metricVisualization": {
+                            "displayName": "Runs Failed"
+                          }
+                        }
+                      ],
+                      "title": "Automation: Logic App runs",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 1,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideHoverCard": false,
+                          "hideLabelNames": true
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      }
+                    }
+                  }
+                }
+              },
+              "filters": {
+                "MsPortalFx_TimeRange": {
+                  "model": {
+                    "format": "local",
+                    "granularity": "auto",
+                    "relative": "43200m"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 7,
+              "y": 10,
+              "colSpan": 7,
+              "rowSpan": 4
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/Microsoft.Storage/storageAccounts/staccessreviewdeveus2001"
+                          },
+                          "name": "Transactions",
+                          "aggregationType": 1,
+                          "namespace": "microsoft.storage/storageaccounts/tableservices",
+                          "metricVisualization": {
+                            "displayName": "Transactions"
+                          }
+                        }
+                      ],
+                      "title": "Storage: table transactions",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 1,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideHoverCard": false,
+                          "hideLabelNames": true
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        }
+                      },
+                      "grouping": {
+                        "dimension": "ApiName",
+                        "sort": 2,
+                        "top": 10
+                      },
+                      "timespan": {
+                        "relative": {
+                          "duration": 604800000
+                        },
+                        "showUTCTime": false,
+                        "grain": 1
+                      }
+                    }
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/Microsoft.Storage/storageAccounts/staccessreviewdeveus2001"
+                          },
+                          "name": "Transactions",
+                          "aggregationType": 1,
+                          "namespace": "microsoft.storage/storageaccounts/tableservices",
+                          "metricVisualization": {
+                            "displayName": "Transactions"
+                          }
+                        }
+                      ],
+                      "title": "Storage: table transactions",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 1,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideHoverCard": false,
+                          "hideLabelNames": true
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      },
+                      "grouping": {
+                        "dimension": "ApiName",
+                        "sort": 2,
+                        "top": 10
+                      }
+                    }
+                  }
+                }
+              },
+              "filters": {
+                "MsPortalFx_TimeRange": {
+                  "model": {
+                    "format": "local",
+                    "granularity": "auto",
+                    "relative": "43200m"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 14,
+              "y": 10,
+              "colSpan": 7,
+              "rowSpan": 4
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/Microsoft.KeyVault/vaults/kv-accrev-dev-eus2-001"
+                          },
+                          "name": "ServiceApiHit",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.keyvault/vaults",
+                          "metricVisualization": {
+                            "displayName": "Total Service Api Hits"
+                          }
+                        }
+                      ],
+                      "title": "Security: Key Vault requests",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 1,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideHoverCard": false,
+                          "hideLabelNames": true
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        }
+                      },
+                      "grouping": {
+                        "dimension": "ActivityName",
+                        "sort": 2,
+                        "top": 10
+                      },
+                      "timespan": {
+                        "relative": {
+                          "duration": 604800000
+                        },
+                        "showUTCTime": false,
+                        "grain": 1
+                      }
+                    }
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/Microsoft.KeyVault/vaults/kv-accrev-dev-eus2-001"
+                          },
+                          "name": "ServiceApiHit",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.keyvault/vaults",
+                          "metricVisualization": {
+                            "displayName": "Total Service Api Hits"
+                          }
+                        }
+                      ],
+                      "title": "Security: Key Vault requests",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 1,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideHoverCard": false,
+                          "hideLabelNames": true
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      },
+                      "grouping": {
+                        "dimension": "ActivityName",
+                        "sort": 2,
+                        "top": 10
+                      }
+                    }
+                  }
+                }
+              },
+              "filters": {
+                "MsPortalFx_TimeRange": {
+                  "model": {
+                    "format": "local",
+                    "granularity": "auto",
+                    "relative": "43200m"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "model": {
+        "timeRange": {
+          "value": {
+            "relative": {
+              "duration": 24,
+              "timeUnit": 1
+            }
+          },
+          "type": "MsPortalFx.Composition.Configuration.ValueTypes.TimeRange"
+        },
+        "filterLocale": {
+          "value": "en-us"
+        },
+        "filters": {
+          "value": {
+            "MsPortalFx_TimeRange": {
+              "model": {
+                "format": "utc",
+                "granularity": "auto",
+                "relative": "30d"
+              },
+              "displayCache": {
+                "name": "UTC Time",
+                "value": "Past 30 days"
+              },
+              "filteredPartIds": [
+                "StartboardPart-LogsDashboardPart-77baa7c9-69db-410b-8709-f3b7860d84dd",
+                "StartboardPart-MonitorChartPart-77baa7c9-69db-410b-8709-f3b7860d84df",
+                "StartboardPart-MonitorChartPart-77baa7c9-69db-410b-8709-f3b7860d84e1",
+                "StartboardPart-LogsDashboardPart-77baa7c9-69db-410b-8709-f3b7860d84e3",
+                "StartboardPart-LogsDashboardPart-77baa7c9-69db-410b-8709-f3b7860d84e5",
+                "StartboardPart-LogsDashboardPart-77baa7c9-69db-410b-8709-f3b7860d84e7",
+                "StartboardPart-MonitorChartPart-77baa7c9-69db-410b-8709-f3b7860d84e9",
+                "StartboardPart-MonitorChartPart-77baa7c9-69db-410b-8709-f3b7860d84eb",
+                "StartboardPart-MonitorChartPart-77baa7c9-69db-410b-8709-f3b7860d84ed"
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "name": "FinalProject-TyIorfino",
+  "type": "Microsoft.Portal/dashboards",
+  "location": "INSERT LOCATION",
+  "tags": {
+    "hidden-title": "FinalProject-TyIorfino"
+  },
+  "apiVersion": "2022-12-01-preview"
+}
