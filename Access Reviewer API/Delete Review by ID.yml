@@ -5,7 +5,7 @@ info:
 
 http:
   method: DELETE
-  url: "{{baseUrl}}/access-reviews/f9314de1-a544-4223-8308-dbc8883b3706"
+  url: "{{baseUrl}}/access-reviews/"
   headers:
     - name: x-api-key
       value: "{{apikey}}"

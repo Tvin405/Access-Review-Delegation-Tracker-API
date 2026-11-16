@@ -12,11 +12,22 @@ from azure.data.tables import TableServiceClient, UpdateMode
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 
-app = func.FunctionApp()
-if os.environ.get("APPLICATIONINSIGHTS_CONNECTION_STRING"):
-    from azure.monitor.opentelemetry import configure_azure_monitor
-    configure_azure_monitor(enable_live_metrics=True)
+#app = func.FunctionApp()
+#if os.environ.get("APPLICATIONINSIGHTS_CONNECTION_STRING"):
+    #from azure.monitor.opentelemetry import configure_azure_monitor
+    #configure_azure_monitor(enable_live_metrics=True)
 
+app = func.FunctionApp()
+
+_conn = os.environ.get("APPLICATIONINSIGHTS_CONNECTION_STRING")
+logging.warning("TelemetrySetup: connection string present = %s", bool(_conn))
+if _conn:
+    try:
+        from azure.monitor.opentelemetry import configure_azure_monitor
+        configure_azure_monitor(enable_live_metrics=True)
+        logging.warning("TelemetrySetup: Azure Monitor configured")
+    except Exception:
+        logging.exception("TelemetrySetup: Azure Monitor failed to start")
 #############################################TABLE CLIENT#####################################################
 
 TABLE_NAME = os.environ.get("TABLE_NAME", "accessreviews")
