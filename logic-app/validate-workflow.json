@@ -1,0 +1,353 @@
+{
+    "properties": {
+        "provisioningState": "Succeeded",
+        "createdTime": "2026-11-16T16:41:51.5580535Z",
+        "changedTime": "2026-11-16T17:08:59.3073761Z",
+        "state": "Enabled",
+        "version": "08584067579461877812",
+        "accessEndpoint": "https://prod-53.eastus2.logic.azure.com:443/workflows/d45eaf940c4e439a9037df1222a4ced7",
+        "definition": {
+            "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+            "contentVersion": "1.0.0.0",
+            "parameters": {
+                "$connections": {
+                    "defaultValue": {},
+                    "type": "Object"
+                }
+            },
+            "triggers": {
+                "Recurrence": {
+                    "recurrence": {
+                        "interval": 1,
+                        "frequency": "Day",
+                        "timeZone": "Eastern Standard Time"
+                    },
+                    "evaluatedRecurrence": {
+                        "interval": 1,
+                        "frequency": "Day",
+                        "timeZone": "Eastern Standard Time"
+                    },
+                    "type": "Recurrence"
+                }
+            },
+            "actions": {
+                "Get_secret": {
+                    "runAfter": {},
+                    "type": "ApiConnection",
+                    "inputs": {
+                        "host": {
+                            "connection": {
+                                "name": "@parameters('$connections')['keyvault']['connectionId']"
+                            }
+                        },
+                        "method": "get",
+                        "path": "/secrets/@{encodeURIComponent('api-key')}/value"
+                    },
+                    "runtimeConfiguration": {
+                        "secureData": {
+                            "properties": [
+                                "inputs",
+                                "outputs"
+                            ]
+                        }
+                    }
+                },
+                "HTTP": {
+                    "runAfter": {
+                        "Get_secret": [
+                            "Succeeded"
+                        ]
+                    },
+                    "type": "Http",
+                    "inputs": {
+                        "uri": "https://func-accessreview-dev-eus2-001-c7d0gshua7dqh2ff.eastus2-01.azurewebsites.net/api/access-reviews/validate",
+                        "method": "PATCH",
+                        "headers": {
+                            "x-api-key": "@{body('Get_secret')?['value']}"
+                        }
+                    },
+                    "runtimeConfiguration": {
+                        "contentTransfer": {
+                            "transferMode": "Chunked"
+                        }
+                    }
+                },
+                "send_success_email": {
+                    "runAfter": {
+                        "HTTP": [
+                            "Succeeded"
+                        ]
+                    },
+                    "type": "ApiConnection",
+                    "inputs": {
+                        "host": {
+                            "connection": {
+                                "name": "@parameters('$connections')['outlook']['connectionId']"
+                            }
+                        },
+                        "method": "post",
+                        "body": {
+                            "To": "iorfinot@mail.sacredheart.edu",
+                            "Subject": "Access review validation succeeded",
+                            "Body": "<p class=\"editor-paragraph\">@{body('HTTP')}</p>",
+                            "Importance": "Normal"
+                        },
+                        "path": "/v2/Mail"
+                    }
+                },
+                "send_failure_email": {
+                    "runAfter": {
+                        "HTTP": [
+                            "Failed",
+                            "TimedOut",
+                            "Skipped"
+                        ]
+                    },
+                    "type": "ApiConnection",
+                    "inputs": {
+                        "host": {
+                            "connection": {
+                                "name": "@parameters('$connections')['outlook']['connectionId']"
+                            }
+                        },
+                        "method": "post",
+                        "body": {
+                            "To": "Iorfinot@mail.sacredheart.edu",
+                            "Subject": "Access review validation FAILED",
+                            "Body": "<p class=\"editor-paragraph\">Validation run failed. Status code: @{outputs('HTTP')?['statusCode']}</p>",
+                            "Importance": "Normal"
+                        },
+                        "path": "/v2/Mail"
+                    }
+                }
+            },
+            "outputs": {}
+        },
+        "parameters": {
+            "$connections": {
+                "value": {
+                    "keyvault": {
+                        "id": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/providers/Microsoft.Web/locations/eastus2/managedApis/keyvault",
+                        "connectionId": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/Microsoft.Web/connections/keyvault",
+                        "connectionName": "keyvault",
+                        "connectionProperties": {
+                            "authentication": {
+                                "type": "ManagedServiceIdentity"
+                            }
+                        }
+                    },
+                    "outlook": {
+                        "id": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/providers/Microsoft.Web/locations/eastus2/managedApis/outlook",
+                        "connectionId": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/Microsoft.Web/connections/outlook",
+                        "connectionName": "outlook",
+                        "connectionProperties": {}
+                    }
+                }
+            }
+        },
+        "endpointsConfiguration": {
+            "workflow": {
+                "outgoingIpAddresses": [
+                    {
+                        "address": "20.96.58.139"
+                    },
+                    {
+                        "address": "20.96.89.48"
+                    },
+                    {
+                        "address": "20.96.89.234"
+                    },
+                    {
+                        "address": "20.122.237.189"
+                    },
+                    {
+                        "address": "52.253.79.47"
+                    },
+                    {
+                        "address": "20.122.237.225"
+                    },
+                    {
+                        "address": "20.122.237.205"
+                    },
+                    {
+                        "address": "4.152.128.227"
+                    },
+                    {
+                        "address": "4.152.128.205"
+                    },
+                    {
+                        "address": "4.153.159.226"
+                    },
+                    {
+                        "address": "4.152.129.221"
+                    },
+                    {
+                        "address": "4.152.127.229"
+                    },
+                    {
+                        "address": "4.152.125.62"
+                    },
+                    {
+                        "address": "4.153.194.246"
+                    },
+                    {
+                        "address": "4.153.201.239"
+                    },
+                    {
+                        "address": "20.122.237.189"
+                    },
+                    {
+                        "address": "52.253.79.47"
+                    },
+                    {
+                        "address": "20.122.237.225"
+                    },
+                    {
+                        "address": "20.122.237.205"
+                    },
+                    {
+                        "address": "4.152.128.227"
+                    },
+                    {
+                        "address": "4.152.128.205"
+                    },
+                    {
+                        "address": "4.153.159.226"
+                    },
+                    {
+                        "address": "4.152.129.221"
+                    },
+                    {
+                        "address": "4.152.127.229"
+                    },
+                    {
+                        "address": "4.152.125.62"
+                    },
+                    {
+                        "address": "4.153.194.246"
+                    },
+                    {
+                        "address": "4.153.201.239"
+                    }
+                ],
+                "accessEndpointIpAddresses": [
+                    {
+                        "address": "20.122.237.191"
+                    },
+                    {
+                        "address": "52.251.20.210"
+                    },
+                    {
+                        "address": "20.122.237.232"
+                    },
+                    {
+                        "address": "20.122.237.221"
+                    },
+                    {
+                        "address": "4.152.129.54"
+                    },
+                    {
+                        "address": "4.152.128.241"
+                    },
+                    {
+                        "address": "20.1.240.241"
+                    },
+                    {
+                        "address": "4.152.129.229"
+                    },
+                    {
+                        "address": "4.152.127.230"
+                    },
+                    {
+                        "address": "4.152.126.158"
+                    },
+                    {
+                        "address": "4.153.195.56"
+                    },
+                    {
+                        "address": "4.153.201.240"
+                    },
+                    {
+                        "address": "20.122.237.191"
+                    },
+                    {
+                        "address": "52.251.20.210"
+                    },
+                    {
+                        "address": "20.122.237.232"
+                    },
+                    {
+                        "address": "20.122.237.221"
+                    },
+                    {
+                        "address": "4.152.129.54"
+                    },
+                    {
+                        "address": "4.152.128.241"
+                    },
+                    {
+                        "address": "20.1.240.241"
+                    },
+                    {
+                        "address": "4.152.129.229"
+                    },
+                    {
+                        "address": "4.152.127.230"
+                    },
+                    {
+                        "address": "4.152.126.158"
+                    },
+                    {
+                        "address": "4.153.195.56"
+                    },
+                    {
+                        "address": "4.153.201.240"
+                    }
+                ]
+            },
+            "connector": {
+                "outgoingIpAddresses": [
+                    {
+                        "address": "52.225.129.144"
+                    },
+                    {
+                        "address": "52.232.188.154"
+                    },
+                    {
+                        "address": "104.209.247.23"
+                    },
+                    {
+                        "address": "40.70.146.208/28"
+                    },
+                    {
+                        "address": "40.70.151.96/27"
+                    },
+                    {
+                        "address": "40.65.220.25"
+                    },
+                    {
+                        "address": "20.98.192.80/28"
+                    },
+                    {
+                        "address": "20.98.192.96/27"
+                    },
+                    {
+                        "address": "20.85.81.137"
+                    },
+                    {
+                        "address": "20.85.80.197"
+                    }
+                ]
+            }
+        }
+    },
+    "id": "/subscriptions/494efe8a-12f8-47e4-93d9-92ab9b44a3c3/resourceGroups/rg-accessreview-dev-eus2-001/providers/Microsoft.Logic/workflows/logic-accessreview-validate-dev-eus2-001",
+    "name": "logic-accessreview-validate-dev-eus2-001",
+    "type": "Microsoft.Logic/workflows",
+    "location": "eastus2",
+    "identity": {
+        "type": "SystemAssigned",
+        "principalId": "01703477-6103-4084-86d2-b0b2c5ee8874",
+        "tenantId": "7f8259c4-c491-47f5-a5e5-a99f5326b976"
+    }
+}
