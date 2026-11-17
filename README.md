@@ -1,4 +1,3 @@
----
 # Access-Review-Delegation-Tracker API
 
 A cloud-native REST API, built with Python on **Azure Functions**, that tracks who holds privileged and standard access, who approved it, why, and when it expires. It covers **PIM**, **PAM**, **PAW** and **Standard** access, and it **automatically flags expired access that is still marked active** so it can be revoked.
