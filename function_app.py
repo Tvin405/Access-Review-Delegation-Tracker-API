@@ -28,6 +28,7 @@ if _conn:
         logging.warning("TelemetrySetup: Azure Monitor configured")
     except Exception:
         logging.exception("TelemetrySetup: Azure Monitor failed to start")
+
 #############################################TABLE CLIENT#####################################################
 
 TABLE_NAME = os.environ.get("TABLE_NAME", "accessreviews")
@@ -57,7 +58,29 @@ def check_flat(body):
     for key, value in body.items():
         if isinstance(value, (dict, list)):
             raise ValueError(f"'{key}' must be a string, number, or boolean, not a nested object or array")
-        
+
+##########################################FIELD VALIDATION#####################################################
+
+ALLOWED_ACCESS_TYPES = {"PIM", "PAM", "PAW", "Standard"}
+ALLOWED_STATUSES = {"active", "revoked", "expired"}
+REQUIRED_FIELDS = ("user", "role", "accessType", "status", "startDate", "expirationDate")
+
+def validate_fields(body):
+    missing = [f for f in REQUIRED_FIELDS if not str(body.get(f, "")).strip()]
+    if missing:
+        raise ValueError(f"Missing required fields: {', '.join(missing)}")
+    if body["accessType"] not in ALLOWED_ACCESS_TYPES:
+        raise ValueError("accessType must be one of: PIM, PAM, PAW, Standard")
+    if body["status"] not in ALLOWED_STATUSES:
+        raise ValueError("status must be one of: active, revoked, expired")
+    try:
+        start = date.fromisoformat(str(body["startDate"]))
+        end = date.fromisoformat(str(body["expirationDate"]))
+    except ValueError:
+        raise ValueError("startDate and expirationDate must be dates in YYYY-MM-DD format")
+    if end < start:
+        raise ValueError("expirationDate must be on or after startDate")
+    
 ############################################ERROR HANDLING#####################################################
 
 class AuthError(Exception):
@@ -143,6 +166,7 @@ def create_access_review(req: func.HttpRequest) -> func.HttpResponse:
     if not isinstance(body, dict):
         raise ValueError("Request body must be a JSON object")
     check_flat(body)
+    validate_fields(body)
     group_id = str(uuid.uuid4())
     body["id"] = group_id
     table().create_entity({"PartitionKey": PARTITION_KEY, "RowKey": group_id, **body})
@@ -161,6 +185,7 @@ def update_access_review(req: func.HttpRequest) -> func.HttpResponse:
     if not isinstance(body, dict):
         raise ValueError("Request body must be a JSON object")
     check_flat(body)
+    validate_fields(body)
     body["id"] = group_id
     table().upsert_entity(
         {"PartitionKey": PARTITION_KEY, "RowKey": group_id, **body},
