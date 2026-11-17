@@ -1,99 +1,3 @@
-# Access-Review-Delegation-Tracker API Reference
-
-## Overview
-
-A REST API hosted on Azure Functions for tracking privileged and standard access grants (PIM, PAM, PAW, Standard). Records are stored in **Azure Table Storage**. All requests and responses use JSON.
-
-## Base URL
-
-```
-https://func-accessreview-dev-eus2-001-c7d0gshua7dqh2ff.eastus2-01.azurewebsites.net/api
-```
-
-Local: `http://localhost:7071/api`
-
-## Authentication
-
-Every endpoint requires the API key in the `x-api-key` header. Purge also requires the admin key in `x-admin-key`. Both keys are stored in **Azure Key Vault** (`api-key`, `admin-key`) and are never stored in code or settings.
-
-```
-x-api-key: <YOUR_API_KEY>
-```
-
-A missing or wrong key returns **401**:
-
-```json
-{ "error": "Unauthorized: Invalid or missing API key" }
-```
-
-## Common headers
-
-| Header | Required | Used on |
-|---|---|---|
-| `x-api-key` | Yes | All endpoints |
-| `x-admin-key` | Yes | `DELETE /access-reviews` (purge) only |
-| `Content-Type: application/json` | When sending a body | POST, PUT |
-
-## Data model: access review
-
-| Field | Type | Set by | Notes |
-|---|---|---|---|
-| `id` | string (GUID) | Server | Generated on create |
-| `user` | string | Client | Who holds the access |
-| `role` | string | Client | Role or permission granted |
-| `system` | string | Client | Target system |
-| `accessType` | string | Client | `PIM`, `PAM`, `PAW` or `Standard` |
-| `assignmentType` | string | Client | For example `eligible` or `active` |
-| `requiresPAW` | boolean | Client | |
-| `grantedBy` | string | Client | Approver |
-| `justification` | string | Client | Why the access was granted |
-| `startDate` | string (YYYY-MM-DD) | Client | |
-| `expirationDate` | string (YYYY-MM-DD) | Client | Used by validation |
-| `status` | string | Client / validation | `active`, `revoked`, `expired` |
-| `needsRevocation` | boolean | Validation | Set to `true` when the record is flagged |
-| `validatedOn` | string (UTC timestamp) | Validation | When it was flagged |
-
-Values must be flat (string, number or boolean). Nested objects or arrays return **400**.
-
-## Endpoint summary
-
-| # | Method | Route | Purpose |
-|---|---|---|---|
-| 1 | GET | `/access-reviews` | Get all access reviews |
-| 2 | GET | `/access-reviews/{id}` | Get one access review **(new)** |
-| 3 | POST | `/access-reviews` | Create an access review |
-| 4 | PUT | `/access-reviews/{id}` | Update an access review |
-| 5 | DELETE | `/access-reviews/{id}` | Delete an access review |
-| 6 | GET | `/access-reviews/count` | Count access reviews |
-| 7 | DELETE | `/access-reviews` | Purge all access reviews (admin key) |
-| 8 | PATCH | `/access-reviews/validate` | Flag expired access that is still active **(new)** |
-
----
-
-## 1. Get all access reviews
-
-`GET /access-reviews`
-
-```bash
-curl "https://<base-url>/access-reviews" -H "x-api-key: <YOUR_API_KEY>"
-```
-
-**200 OK**: a JSON array of records (empty array if there are none). **401** if the key is missing or invalid.
-
-## 2. Get one access review (new)
-
-`GET /access-reviews/{id}`
-
-```bash
-curl "https://<base-url>/access-reviews/<id>" -H "x-api-key: <YOUR_API_KEY>"
-```
-
-| Code | When |
-|---|---|
-| 200 | Record returned |
-| 401 | Missing or invalid API key |
-| 404 | No record with that id: `{ "error": "Access review with ID <id> not found" }` |
-
 ## 3. Create an access review
 
 `POST /access-reviews`
@@ -101,60 +5,111 @@ curl "https://<base-url>/access-reviews/<id>" -H "x-api-key: <YOUR_API_KEY>"
 ```bash
 curl -X POST "https://<base-url>/access-reviews" \
   -H "x-api-key: <YOUR_API_KEY>" -H "Content-Type: application/json" \
-  -d '{"user":"jsmith@contoso.com","role":"Contributor","system":"rg-finance-prod","accessType":"PIM","status":"active","expirationDate":"2026-10-01"}'
+  -d '{"user":"jsmith@contoso.com","role":"Contributor","system":"rg-finance-prod","accessType":"PIM","assignmentType":"active","requiresPAW":false,"grantedBy":"it-director@contoso.com","justification":"Quarter-end finance close","startDate":"2026-09-01","expirationDate":"2026-10-01","status":"active"}'
+```
+
+**201 Created**: the record exactly as sent, plus the new `id`:
+
+```json
+{
+  "user": "jsmith@contoso.com",
+  "role": "Contributor",
+  "system": "rg-finance-prod",
+  "accessType": "PIM",
+  "assignmentType": "active",
+  "requiresPAW": false,
+  "grantedBy": "it-director@contoso.com",
+  "justification": "Quarter-end finance close",
+  "startDate": "2026-09-01",
+  "expirationDate": "2026-10-01",
+  "status": "active",
+  "id": "3f2b8c1e-6a4d-4e2f-9b7a-1c5d8e9f0a12"
+}
 ```
 
 | Code | When |
 |---|---|
-| 201 | Created; returns the record with its new `id` |
-| 400 | Body missing, not valid JSON, or contains nested objects/arrays |
+| 201 | Created |
+| 400 | Any validation error in the table above |
 | 401 | Missing or invalid API key |
 
-## 4. Update an access review
+## 4. Replace an access review
 
-`PUT /access-reviews/{id}`. Replaces the record's fields. The `id` comes from the path.
+`PUT /access-reviews/{id}`
+
+Replaces the **whole** record with the body. The body must pass the same validation as POST. Fields left out of the body are removed, including `needsRevocation` and `validatedOn`. The `id` always comes from the path.
+
+**200 OK**: the new record, including `id`.
 
 | Code | When |
 |---|---|
-| 200 | Updated; returns the record |
-| 400 | Invalid body |
+| 200 | Replaced; returns the record |
+| 400 | Any validation error in the table above |
 | 401 | Missing or invalid API key |
-| 404 | No record with that id |
+| 404 | `{"error": "Access review with ID <id> not found"}` (checked before the body) |
 
 ## 5. Delete an access review
 
 `DELETE /access-reviews/{id}`
 
+**200 OK**:
+
+```json
+{ "message": "Access review with ID 3f2b8c1e-6a4d-4e2f-9b7a-1c5d8e9f0a12 deleted" }
+```
+
 | Code | When |
 |---|---|
-| 200 | Deleted; returns a confirmation message |
+| 200 | Deleted |
 | 401 | Missing or invalid API key |
-| 404 | No record with that id |
+| 404 | `{"error": "Access review with ID <id> not found"}` |
 
 ## 6. Count access reviews
 
-`GET /access-reviews/count` → **200** `{ "count": 3 }`
+`GET /access-reviews/count`
+
+**200 OK**:
+
+```json
+{ "count": 3 }
+```
+
+| Code | When |
+|---|---|
+| 200 | Count returned |
+| 401 | Missing or invalid API key |
 
 ## 7. Purge all access reviews
 
 `DELETE /access-reviews`. Requires **both** `x-api-key` and `x-admin-key`.
 
+```bash
+curl -X DELETE "https://<base-url>/access-reviews" \
+  -H "x-api-key: <YOUR_API_KEY>" -H "x-admin-key: <YOUR_ADMIN_KEY>"
+```
+
+**200 OK**. The count is part of the message text, not a separate field:
+
+```json
+{ "message": "All access reviews deleted. Total deleted: 3" }
+```
+
 | Code | When |
 |---|---|
-| 200 | All records deleted; returns how many |
-| 401 | Missing/invalid API key, or missing/invalid admin key |
+| 200 | All records deleted (`Total deleted: 0` if the table was already empty) |
+| 401 | `Unauthorized: Invalid or missing API key`, or `Unauthorized: Admin key required for purge` |
 
 ## 8. Validate access reviews (new)
 
-`PATCH /access-reviews/validate`
+`PATCH /access-reviews/validate`. No request body.
 
-**What it does:** checks every record. **If `status` is `active` and `expirationDate` is before today (UTC)**, it updates the record to:
+**Rule:** for every record, **if `status` is `active` and `expirationDate` is before today (UTC)**, the record is updated (merged) with:
 
 ```json
 { "status": "expired", "needsRevocation": true, "validatedOn": "2026-11-16T17:06:12+00:00" }
 ```
 
-All other records are left unchanged. No request body is needed.
+Other records are not changed: revoked, already expired, not yet expired, or no `expirationDate`.
 
 ```bash
 curl -X PATCH "https://<base-url>/access-reviews/validate" -H "x-api-key: <YOUR_API_KEY>"
@@ -169,27 +124,29 @@ curl -X PATCH "https://<base-url>/access-reviews/validate" -H "x-api-key: <YOUR_
 }
 ```
 
-`updatedCount` is the number of records this run changed from `active` to `expired`. Running it again right away returns `0`, because those records are no longer active. That makes the endpoint safe to run on a schedule.
-
-Each run also sends a custom event, **`ValidationCompleted`** (with `updatedCount`), to Application Insights.
-
-**Automation:** the Logic App `logic-accessreview-validate-dev-eus2-001` calls this endpoint once a day. It reads `api-key` from Key Vault using its managed identity and emails the result (success or failure).
+- `updatedCount` is the number of records this run changed from `active` to `expired`. A second run right away returns `0`, because those records are no longer active. That makes the endpoint safe to run on a schedule.
+- `timestamp` is the same value written to each flagged record's `validatedOn`, so a response can be matched to the records it changed.
+- Each run also sends the custom event **`ValidationCompleted`** (with `updatedCount`) to Application Insights.
+- The Logic App `logic-accessreview-validate-dev-eus2-001` calls this endpoint once a day. It reads `api-key` from Key Vault with its managed identity and emails the result.
 
 | Code | When |
 |---|---|
-| 200 | Validation ran; returns `updatedCount` and `timestamp` |
+| 200 | Validation ran |
 | 401 | Missing or invalid API key |
-| 500 | Storage or Key Vault unreachable |
 
 ---
 
 ## Error format
 
-All errors return JSON: `{ "error": "<message>" }`
+Every error returns JSON with a single `error` field:
 
-| Code | Typical cause |
+```json
+{ "error": "<message>" }
+```
+
+| Code | Cause |
 |---|---|
-| 400 | Bad or missing body, nested values |
-| 401 | Missing or wrong `x-api-key` (or `x-admin-key` on purge) |
+| 400 | Invalid body (see Validation errors) |
+| 401 | Missing or wrong `x-api-key`, or missing or wrong `x-admin-key` on purge |
 | 404 | No record with that id |
-| 500 | Unexpected server error (details are logged in Application Insights) |
+| 500 | Unexpected error, for example Key Vault or Table Storage unreachable. Body is `{"error": "Internal Server Error"}`; details are in Application Insights. |
